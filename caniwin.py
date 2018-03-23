@@ -59,22 +59,23 @@ picks = {
     Players.Forrest: [Teams.nova, None, None, None, None, None, Teams.nova, None, None, Teams.nova, Teams.nova]
 }
 
-header = ''
-pickstr = 11*['']
-for player, pickset in picks.items():
-    header += player.name
-    while len(header) % 10 != 0:
-        header += ' '
-    for i in range(len(pickset)):        
-        if pickset[i]:
-            pickstr[i] += pickset[i].name
-        else:
-            pickstr[i] += ' '
-        while len(pickstr[i]) % 10 != 0:
-            pickstr[i] += ' '
-print(header)
-for s in pickstr:
-    print(s)
+def print_picks()
+    header = ''
+    pickstr = 11*['']
+    for player, pickset in picks.items():
+        header += player.name
+        while len(header) % 10 != 0:
+            header += ' '
+        for i in range(len(pickset)):
+            if pickset[i]:
+                pickstr[i] += pickset[i].name
+            else:
+                pickstr[i] += ' '
+            while len(pickstr[i]) % 10 != 0:
+                pickstr[i] += ' '
+    print(header)
+    for s in pickstr:
+        print(s)
 
 def print_winners(winners):
     print(50*' ',winners[Games.eastSS1].value)
@@ -107,50 +108,42 @@ class Games(Enum):
     final=10
 
 class Game():
-    def __init__(self, one, two, div):
+    def __init__(self, one=None, two=None):
         self.teamone = one
         self.teamtwo = two
-        self.div = div
 
     def get_winner(self, value):
-        #winner1 = self.teamone if type(self.teamone) == Teams else self.teamone.get_winner(value/2)
-        #winner2 = self.teamtwo if type(self.teamtwo) == Teams else self.teamtwo.get_winner(value/2)
-        #return winner1 if value % 2 == 0 else winner2
-        return self.teamone if value % self.div < self.div/2 else self.teamtwo
-
-    def get_teams(self):
-#        print(self.teamone, self.teamtwo)
-        if type(self.teamone) == list and type(self.teamtwo) == list:
-            return self.teamone.extend(self.teamtwo)
-        elif type(self.teamone) == list:
-            return self.teamone.append(self.teamtwo)
-        elif type(self.teamtwo) == list:
-            return self.teamtwo.append(self.teamone)
-        return [self.teamone, self.teamtwo]
+        return self.teamone if value else self.teamtwo
 
 games = OrderedDict()
-games[Games.eastSS2] = Game(Teams.nova, Teams.wvu, 2)
-games[Games.eastSS1] = Game(Teams.purdue, Teams.ttu, 2)
-games[Games.midwestSS1] = Game(Teams.kansas, Teams.clemson, 2)
-games[Games.midwestSS2] = Game(Teams.cuse, Teams.duke, 2)
-games[Games.southFinal] = Game(Teams.kstate, Teams.loyola, 2)
-games[Games.westFinal] = Game(Teams.fsu, Teams.michigan, 2)
-games[Games.eastFinal] = Game(None, None, 4)
-games[Games.midwestFinal] = Game(None, None, 4)
-games[Games.four1] = Game(None, None, 8)
-games[Games.four2] = Game(None, None, 8)
-games[Games.final] = Game(None, None, 16)
+games[Games.eastSS1] = Game(Teams.nova, Teams.wvu)
+games[Games.eastSS2] = Game(Teams.ttu, Teams.purdue)
+games[Games.midwestSS1] = Game(Teams.kansas, Teams.clemson)
+games[Games.midwestSS2] = Game(Teams.cuse, Teams.duke)
+games[Games.southFinal] = Game(Teams.kstate, Teams.loyola)
+games[Games.westFinal] = Game(Teams.fsu, Teams.michigan)
+games[Games.eastFinal] = Game()
+games[Games.midwestFinal] = Game()
+games[Games.four1] = Game()
+games[Games.four2] = Game()
+games[Games.final] = Game()
 
 best = initial_points[Players.Daniel]
 best_winners = None
 best_points = None
-iwin = 9
+iwin = 0
 points = []
 for i in range(2048):
     points.append(deepcopy(initial_points))
     winners = {}
+    bitlist = list(bin(i)[2:])
+    while len(bitlist) < len(list(games.items())):
+        bitlist.insert(0, False)
+    for b in range(len(bitlist)):
+        bitlist[b] = bitlist[b] == '1'
+    j = 0
     for key, value in games.items():
-        winners[key] = value.get_winner(i)
+        winners[key] = value.get_winner(bitlist[j])
         if key == Games.eastSS1:
             games[Games.eastFinal].teamone = winners[key]
         if key == Games.eastSS2:
@@ -168,9 +161,10 @@ for i in range(2048):
         if key == Games.midwestFinal:
             games[Games.four2].teamtwo = winners[key]
         if key == Games.four1:
-            games[Games.final].teamtwo = winners[key]
-        if key == Games.four2:
             games[Games.final].teamone = winners[key]
+        if key == Games.four2:
+            games[Games.final].teamtwo = winners[key]
+        j += 1
     for player in points[i].keys():
         j = 0
         for game, winner in winners.items():
@@ -186,6 +180,7 @@ for i in range(2048):
             if winner == picks[player][game.value]:
                 points[i][player] += point
             j += 1
+    points[i] = OrderedDict(sorted(points[i].items(), key=lambda t:t[1], reverse=True))
     if points[i][Players.Daniel] > best:
         best = points[i][Players.Daniel]
         best_points = deepcopy(points[i])
