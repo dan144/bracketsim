@@ -4,62 +4,8 @@ from collections import OrderedDict
 from copy import deepcopy
 from enum import Enum
 
-class Players(Enum):
-    Matt=1
-    Shawn=2
-    Brian=3
-    Elgyn=4
-    Daniel=5
-    Tim=6
-    Chris=7
-    Adam=8
-    JD=9
-    Kevin=10
-    Forrest=11
-
-initial_points = {
-    Players.Matt: 46,
-    Players.Shawn: 41,
-    Players.Brian: 40,
-    Players.Elgyn: 39,
-    Players.Daniel: 39,
-    Players.Tim: 37,
-    Players.Chris: 35,
-    Players.Adam: 34,
-    Players.JD: 33,
-    Players.Kevin: 33,
-    Players.Forrest: 29
-}
-
-class Teams(Enum):
-    nova='Nova      '
-    wvu='WVU       '
-    ttu='TTU       '
-    purdue='Purdue    '
-    kansas='Kansas    '
-    clemson='Clemson   '
-    cuse='Cuse      '
-    duke='Duke    '
-    kstate='KState    '
-    loyola='Loyola    '
-    fsu='FSU       '
-    michigan='Michigan  '
-
-picks = {
-    Players.Matt: [Teams.nova, Teams.purdue, Teams.kansas, Teams.duke, None, Teams.michigan, Teams.nova, Teams.duke, None, Teams.nova, None],
-    Players.Shawn: [Teams.nova, Teams.purdue, Teams.kansas, Teams.duke, None, None, Teams.nova, Teams.duke, None, Teams.nova, Teams.nova],
-    Players.Brian: [Teams.wvu, Teams.purdue, Teams.kansas, Teams.duke, None, None, Teams.purdue, Teams.duke, None, Teams.purdue, Teams.purdue],
-    Players.Elgyn: [Teams.nova, Teams.ttu, Teams.kansas, Teams.duke, None, Teams.michigan, Teams.nova, Teams.duke, None, Teams.nova, Teams.nova],
-    Players.Daniel: [Teams.nova, Teams.purdue, Teams.kansas, Teams.duke, None, None, Teams.purdue, Teams.kansas, None, Teams.purdue, Teams.purdue],
-    Players.Tim: [Teams.nova, Teams.purdue, Teams.clemson, None, None, Teams.michigan, Teams.nova, None, Teams.michigan, Teams.nova, Teams.nova],
-    Players.Chris: [Teams.nova, Teams.purdue, Teams.kansas, None, None, None, Teams.nova, None, None, None, None],
-    Players.Adam: [Teams.nova, None, Teams.kansas, None, None, None, Teams.nova, None, None, None, None],
-    Players.JD: [Teams.nova, Teams.purdue, Teams.kansas, Teams.duke, None, None, Teams.nova, Teams.duke, None, Teams.duke, Teams.duke],
-    Players.Kevin: [Teams.nova, Teams.ttu, Teams.kansas, None, None, None, Teams.nova, None, None, Teams.nova, Teams.nova],
-    Players.Forrest: [Teams.nova, None, None, None, None, None, Teams.nova, None, None, Teams.nova, Teams.nova]
-}
-
-def print_picks()
+def print_picks():
+    """Prints a board of each player's picks"""
     header = ''
     pickstr = 11*['']
     for player, pickset in picks.items():
@@ -78,6 +24,10 @@ def print_picks()
         print(s)
 
 def print_winners(winners):
+    """
+    Prints the winners of each game in a rudimentary bracket format
+    winners: dict of the winner of each game, using the key/value pairing Games/Teams
+    """
     print(50*' ',winners[Games.eastSS1].value)
     print(winners[Games.southFinal].value,30*' ',winners[Games.eastFinal].value)
     print(50*' ',winners[Games.eastSS2].value)
@@ -87,12 +37,43 @@ def print_winners(winners):
     print(50*' ',winners[Games.midwestSS2].value)
 
 def print_points(these_points):
+    """
+    Prints the points for each user
+    these_points: dict of scores, using the key/value pairing Players/int
+    """
     for player, points in these_points.items():
         line = player.name
         while len(line) % 10 != 0:
             line += ' '
         line += str(points)
         print(line)
+
+class Players(Enum):
+    Matt=1
+    Shawn=2
+    Brian=3
+    Elgyn=4
+    Daniel=5
+    Tim=6
+    Chris=7
+    Adam=8
+    JD=9
+    Kevin=10
+    Forrest=11
+
+class Teams(Enum):
+    nova='Nova      '
+    wvu='WVU       '
+    ttu='TTU       '
+    purdue='Purdue    '
+    kansas='Kansas    '
+    clemson='Clemson   '
+    cuse='Cuse      '
+    duke='Duke    '
+    kstate='KState    '
+    loyola='Loyola    '
+    fsu='FSU       '
+    michigan='Michigan  '
 
 class Games(Enum):
     eastSS1=0
@@ -114,6 +95,34 @@ class Game():
 
     def get_winner(self, value):
         return self.teamone if value else self.teamtwo
+
+initial_points = {
+    Players.Matt: 46,
+    Players.Shawn: 41,
+    Players.Brian: 40,
+    Players.Elgyn: 39,
+    Players.Daniel: 39,
+    Players.Tim: 37,
+    Players.Chris: 35,
+    Players.Adam: 34,
+    Players.JD: 33,
+    Players.Kevin: 33,
+    Players.Forrest: 29
+}
+
+picks = {
+    Players.Matt: [Teams.nova, Teams.purdue, Teams.kansas, Teams.duke, None, Teams.michigan, Teams.nova, Teams.duke, None, Teams.nova, None],
+    Players.Shawn: [Teams.nova, Teams.purdue, Teams.kansas, Teams.duke, None, None, Teams.nova, Teams.duke, None, Teams.nova, Teams.nova],
+    Players.Brian: [Teams.wvu, Teams.purdue, Teams.kansas, Teams.duke, None, None, Teams.purdue, Teams.duke, None, Teams.purdue, Teams.purdue],
+    Players.Elgyn: [Teams.nova, Teams.ttu, Teams.kansas, Teams.duke, None, Teams.michigan, Teams.nova, Teams.duke, None, Teams.nova, Teams.nova],
+    Players.Daniel: [Teams.nova, Teams.purdue, Teams.kansas, Teams.duke, None, None, Teams.purdue, Teams.kansas, None, Teams.purdue, Teams.purdue],
+    Players.Tim: [Teams.nova, Teams.purdue, Teams.clemson, None, None, Teams.michigan, Teams.nova, None, Teams.michigan, Teams.nova, Teams.nova],
+    Players.Chris: [Teams.nova, Teams.purdue, Teams.kansas, None, None, None, Teams.nova, None, None, None, None],
+    Players.Adam: [Teams.nova, None, Teams.kansas, None, None, None, Teams.nova, None, None, None, None],
+    Players.JD: [Teams.nova, Teams.purdue, Teams.kansas, Teams.duke, None, None, Teams.nova, Teams.duke, None, Teams.duke, Teams.duke],
+    Players.Kevin: [Teams.nova, Teams.ttu, Teams.kansas, None, None, None, Teams.nova, None, None, Teams.nova, Teams.nova],
+    Players.Forrest: [Teams.nova, None, None, None, None, None, Teams.nova, None, None, Teams.nova, Teams.nova]
+}
 
 games = OrderedDict()
 games[Games.eastSS1] = Game(Teams.nova, Teams.wvu)
@@ -188,8 +197,8 @@ for i in range(2048):
     if max(points[i].values()) == points[i][Players.Daniel]:
         iwin += 1
 
-print(iwin * 100 / 2048)
+print("Daniel's odds of winning: {}".format(iwin * 100 / 2048))
 
-print('best case')
-print_winners(best_winners)
+print("Daniel's best possible score (leaderboard)")
 print_points(best_points)
+print_winners(best_winners)
