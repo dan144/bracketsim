@@ -85,6 +85,15 @@ def print_points(these_points):
         print(line)
 
 def print_final(wins, total_sims, best_points, best_winners):
+    if total_sims == 0:
+        print('No simulations completed; impossible filter likely applied')
+        print('Blacklist:')
+        for game, teams in blacklist.items():
+            print('{}\t\t{}'.format(game.name, ', '.join([t.value for t in teams])))
+        print('Whitelist:')
+        for game, teams in whitelist.items():
+            print('{}\t\t{}'.format(game.name, ', '.join([t.value for t in teams])))
+        return
     print('Odds of winning:')
     for player, odds in wins.items():
         print(player.value, 100 * odds / total_sims)
@@ -104,6 +113,10 @@ blacklist = {
     #Games.eastSS2: {Teams.purdue}
 }
 def forbidden_condition(games):
+    """
+    Checks the white and blacklists to see if outcomes are forbidden
+    returns True if an outcome is not allowed
+    """
     for game, teams in blacklist.items():
         if games[game].get_winner(bitlist[game.value]) in teams:
             return True
@@ -161,24 +174,31 @@ games[Games.four1] = Game()
 games[Games.four2] = Game()
 games[Games.final] = Game()
 
+best_win = initial_points[Players.Daniel]
 best = deepcopy(initial_points)
-wins = {}
 best_winners = None
 best_points = None
-best_win = initial_points[Players.Daniel]
-points = []
 total_sims = 0
+points = []
+wins = {}
+
 for i in range(2048):
-    points.append(deepcopy(initial_points))
-    winners = {}
+    # creates list of booleans based on the binary representation of the for loop counter
+    # this provides a unique set of outcomes for the 11 games
     bitlist = list(bin(i)[2:])
     while len(bitlist) < len(list(games.items())):
         bitlist.insert(0, False)
     for b in range(len(bitlist)):
         bitlist[b] = bitlist[b] == '1'
-    j = 0
+
+    points.append(deepcopy(initial_points))
+    winners = {}
+
+    # iterates through all games in the list, selecting winners based on the bitlist
     for key, value in games.items():
-        winners[key] = value.get_winner(bitlist[j])
+        winners[key] = value.get_winner(bitlist[key.value])
+
+        # (inefficiently) puts the winners into their following game
         if key == Games.eastSS1:
             games[Games.eastFinal].teamone = winners[key]
         if key == Games.eastSS2:
@@ -199,12 +219,12 @@ for i in range(2048):
             games[Games.final].teamone = winners[key]
         if key == Games.four2:
             games[Games.final].teamtwo = winners[key]
-        j += 1
+
     if forbidden_condition(games):
-        continue
-    total_sims += 1
+        continue # skips this outcome if it isn't allowed
+
+    # calculate each player's points total for the sim
     for player in points[i].keys():
-        j = 0
         for game, winner in winners.items():
             point = 0
             if 'SS' in game.name:
@@ -217,9 +237,10 @@ for i in range(2048):
                 point = 32
             if winner == picks[player][game.value]:
                 points[i][player] += point
-            j += 1
         if points[i][player] > best[player]:
             best[player] = points[i][player]
+
+    # store points data, update winners count, handle Daniel special case analysis
     points[i] = OrderedDict(sorted(points[i].items(), key=lambda t:t[1], reverse=True))
     winner = list(points[i].items())[0]
     wins[winner[0]] = wins.get(winner[0], 0) + 1
@@ -227,6 +248,8 @@ for i in range(2048):
         best_win = points[i][Players.Daniel]
         best_points = deepcopy(points[i])
         best_winners = deepcopy(winners)
+    total_sims += 1
 
+# sort wins by probability
 wins = OrderedDict(sorted(wins.items(), key=lambda t:t[1], reverse=True))
 print_final(wins, total_sims, best_points, best_winners)
