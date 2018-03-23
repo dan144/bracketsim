@@ -4,6 +4,46 @@ from collections import OrderedDict
 from copy import deepcopy
 from enum import Enum
 
+class Players(Enum):
+    Matt='Matt      '
+    Shawn='Shawn     '
+    Brian='Brian     '
+    Elgyn='Elgyn     '
+    Daniel='Daniel    '
+    Tim='Tim       '
+    Chris='Chris     '
+    Adam='Adam      '
+    JD='JD        '
+    Kevin='Kevin     '
+    Forrest='Forrest   '
+
+class Teams(Enum):
+    nova='Nova      '
+    wvu='WVU       '
+    ttu='TTU       '
+    purdue='Purdue    '
+    kansas='Kansas    '
+    clemson='Clemson   '
+    cuse='Cuse      '
+    duke='Duke    '
+    kstate='KState    '
+    loyola='Loyola    '
+    fsu='FSU       '
+    michigan='Michigan  '
+
+class Games(Enum):
+    eastSS1=0
+    eastSS2=1
+    midwestSS1=2
+    midwestSS2=3
+    southFinal=4
+    westFinal=5
+    eastFinal=6
+    midwestFinal=7
+    four1=8
+    four2=9
+    final=10
+
 def print_picks():
     """Prints a board of each player's picks"""
     header = ''
@@ -57,45 +97,20 @@ def print_final(wins, total_sims, best_points, best_winners):
     else:
         print('Daniel cannot win')
 
-class Players(Enum):
-    Matt='Matt      '
-    Shawn='Shawn     '
-    Brian='Brian     '
-    Elgyn='Elgyn     '
-    Daniel='Daniel    '
-    Tim='Tim       '
-    Chris='Chris     '
-    Adam='Adam      '
-    JD='JD        '
-    Kevin='Kevin     '
-    Forrest='Forrest   '
-
-class Teams(Enum):
-    nova='Nova      '
-    wvu='WVU       '
-    ttu='TTU       '
-    purdue='Purdue    '
-    kansas='Kansas    '
-    clemson='Clemson   '
-    cuse='Cuse      '
-    duke='Duke    '
-    kstate='KState    '
-    loyola='Loyola    '
-    fsu='FSU       '
-    michigan='Michigan  '
-
-class Games(Enum):
-    eastSS1=0
-    eastSS2=1
-    midwestSS1=2
-    midwestSS2=3
-    southFinal=4
-    westFinal=5
-    eastFinal=6
-    midwestFinal=7
-    four1=8
-    four2=9
-    final=10
+whitelist = {
+    #Games.final: {Teams.purdue}
+}
+blacklist = {
+    #Games.eastSS2: {Teams.purdue}
+}
+def forbidden_condition(games):
+    for game, teams in blacklist.items():
+        if games[game].get_winner(bitlist[game.value]) in teams:
+            return True
+    for game, teams in whitelist.items():
+        if games[game].get_winner(bitlist[game.value]) not in teams:
+            return True
+    return False
 
 class Game():
     def __init__(self, one=None, two=None):
@@ -185,6 +200,8 @@ for i in range(2048):
         if key == Games.four2:
             games[Games.final].teamtwo = winners[key]
         j += 1
+    if forbidden_condition(games):
+        continue
     total_sims += 1
     for player in points[i].keys():
         j = 0
