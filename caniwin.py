@@ -9,16 +9,12 @@ def print_picks():
     header = ''
     pickstr = 11*['']
     for player, pickset in picks.items():
-        header += player.name
-        while len(header) % 10 != 0:
-            header += ' '
+        header += player.value
         for i in range(len(pickset)):
             if pickset[i]:
-                pickstr[i] += pickset[i].name
+                pickstr[i] += pickset[i].value
             else:
-                pickstr[i] += ' '
-            while len(pickstr[i]) % 10 != 0:
-                pickstr[i] += ' '
+                pickstr[i] += '          '
     print(header)
     for s in pickstr:
         print(s)
@@ -48,18 +44,31 @@ def print_points(these_points):
         line += str(points)
         print(line)
 
+def print_final(wins, total_sims, best_points, best_winners):
+    print('Odds of winning:')
+    for player, odds in wins.items():
+        print(player.value, 100 * odds / total_sims)
+
+    print()
+    if best_points and best_winners:
+        print("Daniel's best possible outcome (leaderboard)")
+        print_points(best_points)
+        print_winners(best_winners)
+    else:
+        print('Daniel cannot win')
+
 class Players(Enum):
-    Matt=1
-    Shawn=2
-    Brian=3
-    Elgyn=4
-    Daniel=5
-    Tim=6
-    Chris=7
-    Adam=8
-    JD=9
-    Kevin=10
-    Forrest=11
+    Matt='Matt      '
+    Shawn='Shawn     '
+    Brian='Brian     '
+    Elgyn='Elgyn     '
+    Daniel='Daniel    '
+    Tim='Tim       '
+    Chris='Chris     '
+    Adam='Adam      '
+    JD='JD        '
+    Kevin='Kevin     '
+    Forrest='Forrest   '
 
 class Teams(Enum):
     nova='Nova      '
@@ -137,11 +146,13 @@ games[Games.four1] = Game()
 games[Games.four2] = Game()
 games[Games.final] = Game()
 
-best = initial_points[Players.Daniel]
+best = deepcopy(initial_points)
+wins = {}
 best_winners = None
 best_points = None
-iwin = 0
+best_win = initial_points[Players.Daniel]
 points = []
+total_sims = 0
 for i in range(2048):
     points.append(deepcopy(initial_points))
     winners = {}
@@ -174,6 +185,7 @@ for i in range(2048):
         if key == Games.four2:
             games[Games.final].teamtwo = winners[key]
         j += 1
+    total_sims += 1
     for player in points[i].keys():
         j = 0
         for game, winner in winners.items():
@@ -189,16 +201,15 @@ for i in range(2048):
             if winner == picks[player][game.value]:
                 points[i][player] += point
             j += 1
+        if points[i][player] > best[player]:
+            best[player] = points[i][player]
     points[i] = OrderedDict(sorted(points[i].items(), key=lambda t:t[1], reverse=True))
-    if points[i][Players.Daniel] > best:
-        best = points[i][Players.Daniel]
+    winner = list(points[i].items())[0]
+    wins[winner[0]] = wins.get(winner[0], 0) + 1
+    if points[i][Players.Daniel] >= best_win and winner[0] == Players.Daniel:
+        best_win = points[i][Players.Daniel]
         best_points = deepcopy(points[i])
         best_winners = deepcopy(winners)
-    if max(points[i].values()) == points[i][Players.Daniel]:
-        iwin += 1
 
-print("Daniel's odds of winning: {}".format(iwin * 100 / 2048))
-
-print("Daniel's best possible score (leaderboard)")
-print_points(best_points)
-print_winners(best_winners)
+wins = OrderedDict(sorted(wins.items(), key=lambda t:t[1], reverse=True))
+print_final(wins, total_sims, best_points, best_winners)
